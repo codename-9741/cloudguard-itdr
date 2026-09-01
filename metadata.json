@@ -1,0 +1,6 @@
+{
+  "name": "CloudGuard ITDR - AI Detection of AWS IAM Abuse",
+  "description": "M.Tech Capstone Project: Real-time Identity Threat Detection & Response (ITDR) system for AWS IAM abuse using Isolation Forest and LSTM Autoencoders on CloudTrail logs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

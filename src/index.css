@@ -1,0 +1,221 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  code, pre, .font-mono, [class*="font-mono"] {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+  }
+
+  html.dark body,
+  body.dark-mode {
+    background-color: #0B0E14;
+    color: #E2E8F0;
+  }
+
+  html.light body,
+  body.light-mode {
+    background-color: #F8FAFC;
+    color: #0F172A;
+  }
+}
+
+/* Light Mode High-Contrast Overrides for All Components & Badges */
+html.light .bg-\[\#0B0E14\],
+html.light .bg-\[\#0B0E14\]\/40 {
+  background-color: #F8FAFC !important;
+}
+html.light .bg-\[\#0F1219\] {
+  background-color: #FFFFFF !important;
+}
+html.light .bg-\[\#161B22\] {
+  background-color: #F1F5F9 !important;
+}
+html.light .bg-\[\#1C2128\] {
+  background-color: #E2E8F0 !important;
+}
+
+/* Dark Gray Container Overrides in Light Mode */
+html.light .bg-gray-800,
+html.light .bg-gray-900,
+html.light .bg-gray-950,
+html.light .bg-slate-900,
+html.light .bg-slate-950,
+html.light .bg-gray-800\/80,
+html.light .bg-gray-800\/50,
+html.light .bg-gray-800\/40 {
+  background-color: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+/* Specific Light Theme Container & Dropzone Overrides */
+html.light .border-dashed {
+  background-color: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* Table Header & Table Row Overrides in Light Mode */
+html.light table th,
+html.light table tr,
+html.light table td {
+  background-color: #F1F5F9 !important;
+  color: #1E293B !important;
+}
+
+html.light table tr:nth-child(even) {
+  background-color: #F8FAFC !important;
+}
+
+/* Borders */
+html.light .border-gray-800,
+html.light .border-gray-800\/80,
+html.light .border-gray-800\/60,
+html.light .border-gray-800\/50,
+html.light .border-gray-700 {
+  border-color: #CBD5E1 !important;
+}
+
+/* Base Text Colors for High Readability */
+html.light .text-gray-100 {
+  color: #0F172A !important;
+}
+html.light .text-gray-200 {
+  color: #1E293B !important;
+}
+html.light .text-gray-300 {
+  color: #334155 !important;
+}
+html.light .text-gray-400 {
+  color: #475569 !important;
+}
+html.light .text-gray-500 {
+  color: #64748B !important;
+}
+html.light .text-gray-600 {
+  color: #94A3B8 !important;
+}
+
+/* Blue Accents & Badges in Light Mode */
+html.light .text-blue-400,
+html.light .text-blue-300,
+html.light .text-blue-200 {
+  color: #1D4ED8 !important; /* High contrast rich navy blue */
+}
+
+html.light .bg-blue-950\/40,
+html.light .bg-blue-950\/20,
+html.light .bg-blue-950\/50,
+html.light .bg-blue-900\/30,
+html.light .bg-blue-900\/40 {
+  background-color: #EFF6FF !important; /* Soft sky blue pill */
+  color: #1E40AF !important;
+}
+
+html.light .border-blue-800\/50,
+html.light .border-blue-800\/40,
+html.light .border-blue-800\/60,
+html.light .border-blue-500\/40 {
+  border-color: #BFDBFE !important;
+}
+
+/* Red Accents & Badges in Light Mode */
+html.light .text-red-400,
+html.light .text-red-300 {
+  color: #DC2626 !important; /* Crisp crimson red */
+}
+
+html.light .bg-red-950\/50,
+html.light .bg-red-950\/20,
+html.light .bg-red-950\/40,
+html.light .bg-red-950\/60,
+html.light .bg-red-900\/30,
+html.light .bg-red-900\/40 {
+  background-color: #FEF2F2 !important; /* Soft light red pill */
+  color: #991B1B !important;
+}
+
+html.light .border-red-800\/50,
+html.light .border-red-800\/60,
+html.light .border-red-900\/60,
+html.light .border-red-900\/40 {
+  border-color: #FECACA !important;
+}
+
+/* Amber, Orange, Green, Purple Badges in Light Mode */
+html.light .text-amber-400,
+html.light .text-amber-300 {
+  color: #B45309 !important;
+}
+html.light .bg-amber-950\/50,
+html.light .bg-amber-950\/20,
+html.light .bg-amber-900\/30 {
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+}
+
+html.light .text-orange-400,
+html.light .text-orange-300 {
+  color: #C2410C !important;
+}
+html.light .bg-orange-950\/50,
+html.light .bg-orange-950\/10,
+html.light .bg-orange-900\/30 {
+  background-color: #FFEDD5 !important;
+  color: #9A3412 !important;
+}
+
+html.light .text-green-400,
+html.light .text-green-300 {
+  color: #15803D !important;
+}
+html.light .bg-green-950\/50,
+html.light .bg-green-900\/30 {
+  background-color: #DCFCE7 !important;
+  color: #166534 !important;
+}
+
+html.light .text-purple-400 {
+  color: #7E22CE !important;
+}
+
+/* Form Inputs, Selects, and Code Pre Blocks in Light Mode */
+html.light input,
+html.light select,
+html.light pre {
+  background-color: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+html.light select option {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+}
+
+/* High Density Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0B0E14;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #1F2937;
+  border-radius: 3px;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
