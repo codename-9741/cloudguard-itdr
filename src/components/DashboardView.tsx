@@ -229,7 +229,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <p className="text-[10px] text-gray-500">Inject an attack scenario or adjust filters.</p>
               </div>
             ) : (
-              alerts.map((alert) => {
+              alerts.map((alert, index) => {
                 const confidencePct = Math.round(alert.ensembleConfidenceScore * 100);
                 const isCrit = alert.severity === 'CRITICAL';
                 const isHigh = alert.severity === 'HIGH';
@@ -237,7 +237,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 return (
                   <div
-                    key={alert.eventId}
+                    key={`${alert.eventId}-${index}`}
                     className={`rounded-r border-l-2 p-2.5 transition bg-[#0B0E14] ${
                       isCrit
                         ? 'border-red-500 border-t border-r border-b border-gray-800/80 bg-red-950/10'
@@ -326,9 +326,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                     {/* MITRE Badges & XAI summary */}
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 border-t border-gray-800/80 pt-1.5 font-mono">
-                      {alert.mitreTechniques?.map((m) => (
+                      {alert.mitreTechniques?.map((m, mIdx) => (
                         <span
-                          key={m.id}
+                          key={`${m.id || 'mitre'}-${mIdx}`}
                           className="inline-flex items-center rounded bg-[#161B22] border border-gray-800 px-1.5 py-0.2 text-[9px] font-medium text-gray-300"
                         >
                           <strong className="text-blue-400 mr-1">{m?.id}</strong> {m?.name?.split(':')?.[0] || m?.name || m?.id}
@@ -370,7 +370,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
                 return (
                   <div
-                    key={entity.arn}
+                    key={`${entity.arn}-${idx}`}
                     className={`flex items-center justify-between p-2 bg-[#0B0E14] border-l-2 rounded-r ${
                       isCrit
                         ? 'border-red-500'
@@ -532,9 +532,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 font-mono">
-            {mitreSummary.map((item) => (
+            {mitreSummary.map((item, idx) => (
               <div
-                key={item.id}
+                key={`${item.id}-${idx}`}
                 onClick={() => setSelectedMitre(item.id)}
                 className="cursor-pointer rounded border border-gray-800 bg-[#0B0E14] p-2.5 transition hover:border-blue-500/50"
               >

@@ -112,8 +112,8 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
               MITRE ATT&CK® Cloud Technique Attribution
             </h4>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {alert.mitreTechniques?.map((m) => (
-                <div key={m.id} className="rounded border border-gray-800 bg-[#0B0E14] p-2.5">
+              {alert.mitreTechniques?.map((m, idx) => (
+                <div key={`${m.id || 'mitre'}-${idx}`} className="rounded border border-gray-800 bg-[#0B0E14] p-2.5">
                   <div className="flex items-center justify-between font-mono">
                     <span className="rounded bg-blue-950/50 border border-blue-800/60 px-1.5 py-0.2 text-[9px] font-bold text-blue-400">
                       {m.id}
@@ -134,7 +134,7 @@ export const AlertDetailModal: React.FC<AlertDetailModalProps> = ({
             </h4>
             <div className="space-y-1.5">
               {alert.xaiTopContributors?.map((c: any, i: number) => (
-                <div key={i} className="flex items-start gap-2.5 rounded border border-gray-800 bg-[#0B0E14] p-2">
+                <div key={`xai-${i}-${c.feature || 'f'}`} className="flex items-start gap-2.5 rounded border border-gray-800 bg-[#0B0E14] p-2">
                   <div className="flex h-4 w-4 shrink-0 items-center justify-center rounded bg-gray-800 font-mono text-[10px] text-blue-400">
                     {i + 1}
                   </div>

@@ -26,6 +26,30 @@ export class IsolationForest {
     this.numTrees = numTrees;
     this.subSampleSize = subSampleSize;
     this.maxDepth = Math.ceil(Math.log2(Math.max(subSampleSize, 2)));
+    this.initDefaultBaseline();
+  }
+
+  /**
+   * Initializes the forest with a standard calibrated baseline distribution of normal AWS IAM behavior
+   */
+  private initDefaultBaseline(): void {
+    const normalSamples: number[][] = [];
+    // Generate 256 normal baseline vectors with standard low-variance DevOps profiles
+    for (let i = 0; i < 256; i++) {
+      normalSamples.push([
+        Math.random() * 0.2,            // apiCallCount (low/moderate)
+        0,                              // assumeRoleDepth (0 for standard users)
+        Math.random() < 0.05 ? 0.1 : 0, // highRiskActionCount (rarely 1)
+        Math.random() < 0.03 ? 0.07 : 0,// accessDeniedCount (rarely 1)
+        Math.random() * 0.15,           // ipEntropy (single/dual corporate IP)
+        Math.random() * 0.1,            // rareApiScore (routine APIs)
+        Math.random() * 0.15,           // offHoursScore (standard business hours)
+        Math.random() * 0.1,            // novelUserAgentScore (known SDKs)
+        0,                              // crossAccount (same account)
+        Math.random() < 0.02 ? 0.2 : 0, // errorCodeDiversity (0 or 1 error)
+      ]);
+    }
+    this.fit(normalSamples);
   }
 
   // Euler-Mascheroni constant approx for c(n) average path length
@@ -117,12 +141,14 @@ export class IsolationForest {
   }
 
   /**
-   * Predicts anomaly score s in range [0, 1]. Higher value means higher probability of being anomalous.
+   * Predicts anomaly score s in range [0, 1] using standard Liu et al. Isolation Forest equation:
+   * s(x, n) = 2^(- E(h(x)) / c(n))
+   * Short paths E(h(x)) -> s close to 1 (anomaly)
+   * Long paths E(h(x)) -> s close to 0 (normal baseline)
    */
   public score(x: number[]): number {
-    if (!this.trained || this.trees.length === 0) {
-      // Fallback heuristics based on feature vector values if untrained
-      return this.heuristicScore(x);
+    if (this.trees.length === 0) {
+      this.initDefaultBaseline();
     }
 
     let totalPathLength = 0;
@@ -132,24 +158,12 @@ export class IsolationForest {
     const avgPathLength = totalPathLength / this.trees.length;
     const cN = IsolationForest.c(this.subSampleSize);
     
-    // Anomaly score formula: s(x, n) = 2^(- avg_h / c(n))
-    const score = Math.pow(2, - (avgPathLength / cN));
+    // Liu et al. Isolation Forest formula: s(x, n) = 2^(- E(h(x)) / c(n))
+    const rawScore = Math.pow(2, - (avgPathLength / cN));
 
-    // Combine with specific domain weights (e.g. role chaining & sensitive actions)
-    const domainMultiplier = 0.7 * score + 0.3 * this.heuristicScore(x);
-    return Math.max(0.0, Math.min(1.0, domainMultiplier));
-  }
-
-  private heuristicScore(x: number[]): number {
-    // x indices:
-    // 0: apiCallCount, 1: assumeRoleDepth, 2: highRiskActionCount, 3: accessDeniedCount,
-    // 4: ipEntropy, 5: rareApiScore, 6: offHoursScore, 7: novelUserAgentScore, 8: crossAccount, 9: errorCodeDiversity
-    const weights = [0.08, 0.22, 0.25, 0.12, 0.06, 0.12, 0.04, 0.05, 0.04, 0.02];
-    let score = 0;
-    for (let i = 0; i < weights.length; i++) {
-      score += (x[i] || 0) * weights[i];
-    }
-    return Math.min(1.0, score * 1.5);
+    // Map raw score [0.35, 0.85] to calibrated [0.0, 1.0] probability interval
+    const calibratedScore = (rawScore - 0.40) / 0.45;
+    return Math.max(0.02, Math.min(0.99, Number(calibratedScore.toFixed(4))));
   }
 
   public getTreeCount(): number {

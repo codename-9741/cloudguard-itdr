@@ -286,7 +286,7 @@ export class LSTMAutoencoder {
   }
 
   /**
-   * Pushes a single feature vector into entity's rolling buffer and scores sequence
+   * Pushes a single feature vector into entity's rolling buffer and scores sequence using LSTM reconstruction MSE
    */
   public scoreEntityEvent(entityArn: string, currentVector: number[]): { score: number; mse: number; isSequenceAnomaly: boolean } {
     let buffer = this.entitySequenceBuffer.get(entityArn) || [];
@@ -299,36 +299,20 @@ export class LSTMAutoencoder {
     // Pad buffer if less than seqLength
     const sequenceToScore: number[][] = [];
     while (sequenceToScore.length < this.seqLength - buffer.length) {
-      sequenceToScore.push(new Array(this.inputDim).fill(0)); // Zero-padding
+      sequenceToScore.push(new Array(this.inputDim).fill(0)); // Zero-padding for initial steps
     }
     sequenceToScore.push(...buffer);
 
+    // Run forward pass through Encoder -> Latent Bottleneck -> Decoder
     const { mse } = this.forward(sequenceToScore);
 
-    // Dynamic sequence anomaly heuristics (amplified by role chaining hops & rapid high-risk calls)
-    let anomalyScore = Math.min(1.0, mse / (this.reconstructionThreshold * 1.8));
-
-    // Sequence pattern check: consecutive high-risk or consecutive AssumeRole
-    let consecutiveHighRisk = 0;
-    let consecutiveAssumeRole = 0;
-    for (const vec of buffer) {
-      if (vec[1] > 0.3) consecutiveAssumeRole++; // AssumeRole depth
-      if (vec[2] > 0.2) consecutiveHighRisk++;   // High-risk action
-    }
-
-    if (consecutiveAssumeRole >= 2) {
-      anomalyScore = Math.max(anomalyScore, 0.75 + consecutiveAssumeRole * 0.08);
-    }
-    if (consecutiveHighRisk >= 2) {
-      anomalyScore = Math.max(anomalyScore, 0.82 + consecutiveHighRisk * 0.06);
-    }
-
-    anomalyScore = Math.min(1.0, Math.max(0.0, anomalyScore));
+    // Anomaly score directly derived from MSE reconstruction error relative to calibrated baseline threshold
+    const normalizedScore = Math.min(1.0, Math.max(0.02, mse / (this.reconstructionThreshold * 1.5)));
 
     return {
-      score: anomalyScore,
+      score: Number(normalizedScore.toFixed(4)),
       mse: Number(mse.toFixed(4)),
-      isSequenceAnomaly: anomalyScore > 0.65,
+      isSequenceAnomaly: normalizedScore >= 0.65,
     };
   }
 

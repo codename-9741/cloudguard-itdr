@@ -177,20 +177,10 @@ export class EnsembleScorer {
     const lstmResult = this.lstmAutoencoder.scoreEntityEvent(entityArn, vectorArray);
     const lstmScore = lstmResult.score;
 
-    // 4. Weighted Ensemble Confidence Score
-    let ensembleScore = this.ifWeight * ifScore + this.lstmWeight * lstmScore;
+    // 4. Weighted Ensemble Confidence Score (pure ML model blending)
+    const ensembleScore = this.ifWeight * ifScore + this.lstmWeight * lstmScore;
 
-    // Boost score if event explicitly triggered high-risk attack signature (e.g. 3+ role hops or policy version injection)
-    if (features.assumeRoleDepth >= 3 && features.highRiskActionCount >= 1) {
-      ensembleScore = Math.max(ensembleScore, 0.88);
-    }
-    if (event.eventName === 'CreatePolicyVersion' || event.eventName === 'AttachUserPolicy') {
-      if (features.rareApiScore > 0.6) {
-        ensembleScore = Math.max(ensembleScore, 0.82);
-      }
-    }
-
-    // Determine severity
+    // Determine severity based strictly on continuous ML model score
     let severity: Severity = 'INFORMATIONAL';
     if (ensembleScore >= 0.85) severity = 'CRITICAL';
     else if (ensembleScore >= 0.70) severity = 'HIGH';

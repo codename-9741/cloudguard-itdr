@@ -9,7 +9,6 @@ import {
   Play, 
   Pause, 
   RotateCcw, 
-  GraduationCap, 
   ChevronRight,
   Radio,
   FastForward,
@@ -51,27 +50,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'ml-pipeline', label: 'ML Pipeline & Models', icon: Cpu },
     { id: 'ueba', label: 'Entity UEBA Profiler', icon: UserCheck },
     { id: 'attack-lab', label: 'Red Team Attack Lab', icon: Flame },
-    { id: 'datasets', label: 'CloudTrail Datasets', icon: Database },
+    { id: 'datasets', label: 'AWS & Dataset Pipeline', icon: Database },
     { id: 'soar', label: 'Incident Response & SOAR', icon: Zap },
   ];
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-800 bg-[#0F1219]">
-      {/* Top Academic & Project Identity Banner */}
+      {/* Top Status & Telemetry Bar */}
       <div className="border-b border-gray-800/80 bg-[#0B0E14] px-4 py-1.5 text-xs">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded bg-blue-900/30 px-2 py-0.5 font-semibold text-blue-400 border border-blue-800/50 text-[11px] font-mono">
-              <GraduationCap className="h-3.5 w-3.5" />
-              M.TECH CYBER SECURITY & ML
-            </span>
-            <span className="hidden text-gray-600 sm:inline">•</span>
-            <span className="hidden font-mono text-[11px] text-gray-400 sm:inline">
-              REVA University — P Rahul (SRN: R23MTC09)
-            </span>
-          </div>
-
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] uppercase text-gray-500 font-mono">ML Pipeline:</span>
               <span className="text-xs font-mono text-green-400 flex items-center gap-1">
@@ -79,10 +67,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 LIVE INFERENCE
               </span>
             </div>
+            <span className="text-gray-700 hidden sm:inline">•</span>
             <div className="hidden sm:flex items-center gap-1.5">
-              <span className="text-[10px] uppercase text-gray-500 font-mono">Dataset:</span>
+              <span className="text-[10px] uppercase text-gray-500 font-mono">Telemetry Source:</span>
               <span className="text-xs font-mono text-blue-400">AWS_CLOUDTRAIL_PROD</span>
             </div>
+          </div>
+
+          <div className="flex items-center gap-4">
             <button
               onClick={onOpenAcademicModal}
               className="flex items-center gap-1 rounded bg-[#161B22] border border-gray-800 px-2 py-0.5 text-[11px] font-medium text-gray-300 transition hover:border-gray-700 hover:text-white"

@@ -173,8 +173,8 @@ export const EntityBehaviorView: React.FC<EntityBehaviorViewProps> = ({
             onChange={(e) => setSelectedArn(e.target.value)}
             className="rounded border border-gray-800 bg-[#0B0E14] px-2.5 py-1 text-xs text-blue-400 focus:border-blue-500 focus:outline-none"
           >
-            {entities.map((e) => (
-              <option key={e.arn} value={e.arn}>
+            {entities.map((e, idx) => (
+              <option key={`${e.arn}-${idx}`} value={e.arn}>
                 {e.arn?.split('/')?.pop() || e.arn} ({e.type}) — {e.anomalyCount > 0 ? `🚨 ${e.anomalyCount} Anomalies` : '✓ Benign'}
               </option>
             ))}
@@ -285,9 +285,9 @@ export const EntityBehaviorView: React.FC<EntityBehaviorViewProps> = ({
         </div>
 
         <div className="max-h-56 overflow-y-auto space-y-1.5 font-mono">
-          {currentEntityPredictions.map((item) => (
+          {currentEntityPredictions.map((item, idx) => (
             <div
-              key={item.eventId}
+              key={`${item.eventId}-${idx}`}
               onClick={() => onSelectAlert(item)}
               className={`flex cursor-pointer items-center justify-between rounded border p-2 text-xs transition ${
                 item.isAnomaly

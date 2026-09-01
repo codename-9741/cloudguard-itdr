@@ -129,8 +129,8 @@ Over-permissive \`sts:AssumeRole\` trust relationship permitted horizontal role 
                   onChange={(e) => setSelectedEntityArn(e.target.value)}
                   className="mt-1 w-full rounded border border-gray-800 bg-[#0B0E14] px-2.5 py-1 font-mono text-xs text-blue-400 focus:border-blue-500 focus:outline-none"
                 >
-                  {recentAnomalies.map((a) => (
-                    <option key={a.eventId} value={a.entityArn}>
+                  {recentAnomalies.map((a, idx) => (
+                    <option key={`${a.eventId}-${idx}`} value={a.entityArn}>
                       {a.entityArn?.split('/')?.pop() || a.entityArn} (Score: {((a.ensembleConfidenceScore || 0) * 100).toFixed(0)}%)
                     </option>
                   ))}
@@ -230,9 +230,9 @@ Over-permissive \`sts:AssumeRole\` trust relationship permitted horizontal role 
               No active identity containments deployed. Execute a containment playbook above to isolate compromised identities.
             </div>
           ) : (
-            containments.map((act) => (
+            containments.map((act, idx) => (
               <div
-                key={act.id}
+                key={`${act.id}-${idx}`}
                 className="rounded border border-gray-800 bg-[#0B0E14] p-3 font-mono"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">

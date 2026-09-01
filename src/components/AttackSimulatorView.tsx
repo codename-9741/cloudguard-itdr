@@ -263,8 +263,8 @@ export const AttackSimulatorView: React.FC<AttackSimulatorViewProps> = ({
                   <div className="mt-2 border-t border-gray-800 pt-2">
                     <span className="text-[10px] text-gray-500 uppercase">MITRE Attribution:</span>
                     <div className="mt-1 flex flex-wrap gap-1">
-                      {customEvalResult.mitreTechniques?.map((m) => (
-                        <span key={m?.id} className="rounded bg-[#161B22] border border-gray-800 px-1.5 py-0.2 text-[9px] text-blue-400">
+                      {customEvalResult.mitreTechniques?.map((m, idx) => (
+                        <span key={`${m?.id || 'mitre'}-${idx}`} className="rounded bg-[#161B22] border border-gray-800 px-1.5 py-0.2 text-[9px] text-blue-400">
                           {m?.id} - {m?.name?.split(':')?.[0] || m?.name || m?.id}
                         </span>
                       ))}

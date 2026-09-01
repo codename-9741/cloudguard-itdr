@@ -11,6 +11,9 @@ export function createTimestamp(offsetMinutes: number): string {
  * Normal Baseline Dataset: Represents 1,000+ authentic normal AWS CloudTrail events
  * across legitimate developer, DevOps, CI/CD, and system identities.
  */
+let globalNormIdCounter = 1000;
+let globalAttackIdCounter = 1;
+
 export function generateNormalBaseline(): CloudTrailEvent[] {
   const events: CloudTrailEvent[] = [];
   const benignEntities = [
@@ -47,7 +50,6 @@ export function generateNormalBaseline(): CloudTrailEvent[] {
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 AWS-Console',
   ];
 
-  let idCounter = 1000;
   // Generate 800 regular distributed benign events
   for (let i = 0; i < 800; i++) {
     const entity = benignEntities[i % benignEntities.length];
@@ -57,7 +59,7 @@ export function generateNormalBaseline(): CloudTrailEvent[] {
     const offset = Math.floor((i / 800) * 720); // Distributed over 12 hours
 
     events.push({
-      eventID: `evt-norm-${idCounter++}`,
+      eventID: `evt-norm-${globalNormIdCounter++}`,
       eventTime: createTimestamp(offset),
       eventSource: api.service,
       eventName: api.action,

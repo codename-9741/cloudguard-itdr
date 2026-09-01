@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShieldAlert, Activity, AlertTriangle, CheckCircle2, Lock, Workflow } from 'lucide-react';
+import React, { useState } from 'react';
+import { ShieldAlert, Activity, AlertTriangle, CheckCircle2, Lock, Workflow, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { ModelPrediction } from '../types';
 
 interface OverviewMetricsProps {
@@ -86,7 +86,13 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
         <div>
           <div className="flex items-center justify-between">
             <span className="text-[10px] uppercase text-gray-500 font-bold tracking-wider">Global Identity Risk</span>
-            <AlertTriangle className="h-3.5 w-3.5 text-orange-400" />
+            <div className="flex items-center gap-1">
+              <span className="inline-flex items-center gap-0.5 rounded bg-blue-950/60 border border-blue-800/40 px-1 py-0.2 text-[8px] font-mono text-blue-400">
+                <Sparkles className="h-2 w-2 animate-spin" />
+                AUTO
+              </span>
+              <AlertTriangle className="h-3.5 w-3.5 text-orange-400" />
+            </div>
           </div>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="font-mono text-2xl font-light text-orange-500">{(parseFloat(meanScore) * 100).toFixed(1)}</span>
@@ -97,9 +103,10 @@ export const OverviewMetrics: React.FC<OverviewMetricsProps> = ({
           <div className="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
             <div className="h-full bg-orange-500" style={{ width: `${riskPct}%` }}></div>
           </div>
-          <p className="mt-1 text-[10px] text-gray-400 font-mono truncate">
-            IF (0.4) + LSTM (0.6)
-          </p>
+          <div className="mt-1 flex items-center justify-between text-[10px] text-gray-400 font-mono">
+            <span>IF (0.4) + LSTM (0.6)</span>
+            <span className="text-green-400 text-[9px]">● Calibrated</span>
+          </div>
         </div>
       </div>
 

@@ -58,6 +58,8 @@ export default function App() {
   // Telemetry & Feedback
   const [fpRate, setFpRate] = useState<number>(0.05); // 5% default initial FP rate
   const [feedbackCount, setFeedbackCount] = useState<number>(0);
+  const [awsEventsCount, setAwsEventsCount] = useState<number>(0);
+  const [localUploadedCount, setLocalUploadedCount] = useState<number>(0);
   const [containments, setContainments] = useState<ContainmentAction[]>([
     {
       id: 'init-contain-01',
@@ -117,7 +119,12 @@ export default function App() {
         if (newEvent) {
           const newPrediction = scorerRef.current.predict(newEvent);
           if (newPrediction) {
-            setPredictions((prev) => [newPrediction, ...prev]);
+            setPredictions((prev) => {
+              if (prev.some((p) => p.eventId === newPrediction.eventId)) {
+                return prev;
+              }
+              return [newPrediction, ...prev];
+            });
 
             if (newPrediction.isAnomaly && newPrediction.severity === 'CRITICAL') {
               const principalName = newPrediction.entityArn?.split('/')?.pop() || newPrediction.entityArn || 'Principal';
@@ -140,7 +147,12 @@ export default function App() {
       if (newEvent) {
         const newPrediction = scorerRef.current.predict(newEvent);
         if (newPrediction) {
-          setPredictions((prev) => [newPrediction, ...prev]);
+          setPredictions((prev) => {
+            if (prev.some((p) => p.eventId === newPrediction.eventId)) {
+              return prev;
+            }
+            return [newPrediction, ...prev];
+          });
         }
       }
       setStreamIndex((prev) => prev + 1);
@@ -157,25 +169,36 @@ export default function App() {
 
   // Inject Attack Scenario
   const handleInjectAttack = (scenarioId: string) => {
-    let attackEvents: CloudTrailEvent[] = [];
+    let rawAttackEvents: CloudTrailEvent[] = [];
     if (scenarioId === 'scen-role-chaining') {
-      attackEvents = generateRoleChainingDataset();
+      rawAttackEvents = generateRoleChainingDataset();
     } else if (scenarioId === 'scen-policy-version') {
-      attackEvents = generatePolicyVersionDataset();
+      rawAttackEvents = generatePolicyVersionDataset();
     } else if (scenarioId === 'scen-s3-exfil') {
-      attackEvents = generateS3ExfilDataset();
+      rawAttackEvents = generateS3ExfilDataset();
     } else if (scenarioId === 'scen-credential-spraying') {
-      attackEvents = generateCredentialSprayingDataset();
+      rawAttackEvents = generateCredentialSprayingDataset();
     } else {
-      attackEvents = generateRoleChainingDataset();
+      rawAttackEvents = generateRoleChainingDataset();
     }
 
-    // Insert attack events at the head of the stream
+    // Give each injected event a unique batch ID to prevent key collisions across multiple injections
+    const batchId = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`;
+    const attackEvents = rawAttackEvents.map((ev, idx) => ({
+      ...ev,
+      eventID: `${ev.eventID}-inj-${batchId}-${idx}`,
+    }));
+
+    // Insert attack events into the stream
     setAllEvents((prev) => [...attackEvents, ...prev]);
     
     // Process them immediately so the user sees real-time detections
     const scoredAttacks: ModelPrediction[] = attackEvents.map((ev) => scorerRef.current.predict(ev));
-    setPredictions((prev) => [...scoredAttacks, ...prev]);
+    setPredictions((prev) => {
+      const newIds = new Set(scoredAttacks.map((a) => a.eventId));
+      const filteredPrev = prev.filter((p) => !newIds.has(p.eventId));
+      return [...scoredAttacks, ...filteredPrev];
+    });
 
     triggerToast(`⚡ Injected ${attackEvents.length} events for ${scenarioId}! Threat detection triggered.`);
   };
@@ -183,7 +206,10 @@ export default function App() {
   // Evaluate single custom JSON event
   const handleEvaluateCustomEvent = (rawEvent: CloudTrailEvent): ModelPrediction => {
     const pred = scorerRef.current.predict(rawEvent);
-    setPredictions((prev) => [pred, ...prev]);
+    setPredictions((prev) => {
+      const filtered = prev.filter((p) => p.eventId !== pred.eventId);
+      return [pred, ...filtered];
+    });
     return pred;
   };
 
@@ -203,10 +229,54 @@ export default function App() {
 
   // Upload custom logs
   const handleUploadCustomLogs = (customEvents: CloudTrailEvent[]) => {
-    setAllEvents(customEvents);
-    setStreamIndex(customEvents.length);
-    refreshScores(customEvents);
+    setLocalUploadedCount((prev) => prev + customEvents.length);
+    setAllEvents((prev) => [...customEvents, ...prev]);
+    setStreamIndex((prev) => prev + customEvents.length);
+    refreshScores([...customEvents, ...allEvents]);
     triggerToast(`Successfully ingested ${customEvents.length} custom CloudTrail records.`);
+  };
+
+  // Ingest Live or Archived AWS CloudTrail Events
+  const handleIngestAwsEvents = (awsEvents: CloudTrailEvent[], sourceLabel: string) => {
+    setAwsEventsCount((prev) => prev + awsEvents.length);
+    
+    // Normalize and prepend AWS events
+    const scoredAws = awsEvents.map((ev) => scorerRef.current.predict(ev));
+    setAllEvents((prev) => [...awsEvents, ...prev]);
+    setPredictions((prev) => {
+      const newIds = new Set(scoredAws.map((a) => a.eventId));
+      const filteredPrev = prev.filter((p) => !newIds.has(p.eventId));
+      return [...scoredAws, ...filteredPrev];
+    });
+
+    const anomaliesInBatch = scoredAws.filter((s) => s.isAnomaly).length;
+    triggerToast(
+      `☁️ AWS Integration: Ingested ${awsEvents.length} events from ${sourceLabel}. (${anomaliesInBatch} anomalies flagged)`
+    );
+  };
+
+  // Automated Pipeline Retraining (AWS + Local + Benchmarks)
+  const handleExecutePipelineTraining = async (epochs: number, trees: number): Promise<void> => {
+    setIsTraining(true);
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Collect all available clean baseline events + normal traffic
+        const normalBaseline = generateNormalBaselineTraffic(600);
+        const nonAttackAll = allEvents.filter((e) => !e.isSimulatedAttack);
+        const combinedTrainingSet = [...nonAttackAll, ...normalBaseline];
+
+        scorerRef.current.train(combinedTrainingSet, epochs, trees);
+        setTrainingMetrics(scorerRef.current.getTrainingMetrics());
+        setIsTraining(false);
+        refreshScores(allEvents.slice(0, streamIndex));
+        triggerToast(
+          `⚡ Automated Pipeline: Successfully retrained Ensemble on ${combinedTrainingSet.length} events! ROC-AUC: ${(
+            scorerRef.current.getTrainingMetrics().rocAuc * 100
+          ).toFixed(1)}%`
+        );
+        resolve();
+      }, 1500);
+    });
   };
 
   // Model Retraining Handler
@@ -423,6 +493,18 @@ export default function App() {
             onLoadDataset={handleLoadDataset}
             onUploadCustomLogs={handleUploadCustomLogs}
             onInspectRawEvent={(ev) => setSelectedRawEventForInspect(ev)}
+            onIngestAwsEvents={handleIngestAwsEvents}
+            trainingMetrics={trainingMetrics}
+            onExecutePipelineTraining={handleExecutePipelineTraining}
+            isTraining={isTraining}
+            fpRate={fpRate}
+            awsEventsCount={awsEventsCount}
+            localUploadedCount={localUploadedCount}
+            ifWeight={ifWeight}
+            lstmWeight={lstmWeight}
+            onUpdateWeights={handleUpdateWeights}
+            threshold={threshold}
+            onUpdateThreshold={handleUpdateThreshold}
           />
         )}
 
